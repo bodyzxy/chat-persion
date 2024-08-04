@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: chat-person
+  datasource:
+    url: jdbc:mysql://localhost:3306/security?useSSL=false
+    username: root
+    password: bodyzxy
+  app:
+    jwtSecret: ==========================bodyzxy============================
+    jwtExpirationMs: 86400000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    open-in-view: true
+  data:
+    redis:
+      database: 0
+      host: 0.0.0.0
+      port: 6379
+      lettuce:
+        pool:
+          max-active: 8 #??????
+          max-wait: -1 #????????
+          max-idle: 8 #??????
+          min-idle: 0 #??????
