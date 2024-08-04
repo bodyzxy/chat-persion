@@ -44,7 +44,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     private static final List<String> WHITE_LIST_URL = Arrays.asList(
-            "/**"
+            "/user/login",
+            "/user/register",
+            "/doc.html",
+            "/webjars/**",
+            "/doc.html#/**",
+            "/v3/**",
+            "/swagger-resources/**"
     );
     private final PathMatcher pathMatcher;
 
@@ -60,9 +66,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
 
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null) {
             System.out.println("This is AuthTokenFilter \n");
-            response.sendError(401,"请登录");
+            response.sendError(400,"请登录");
             return;
         }
         String jwt = authHeader.substring(7);
@@ -71,6 +77,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             String key = RedisToken.LOGIN_TOKEN + jwt;
             Map<Object, Object> userMap = stringRedisTemplate.opsForHash().entries(key);
             if (userMap.isEmpty()){
+                UserHolder.removeUser();
                 return;
             }
             UserResponse userResponse = BeanUtil.fillBeanWithMap(userMap,new UserResponse(),false);

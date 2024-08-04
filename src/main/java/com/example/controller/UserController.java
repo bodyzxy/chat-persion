@@ -4,6 +4,7 @@ import com.example.component.BaseResponse;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
 import com.example.service.UserService;
+import com.example.utils.ResultUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,8 +41,9 @@ public class UserController {
         return userService.register(registerRequest);
     }
 
-    @PostMapping("/sss")
-    public void auth(){
-        System.out.println("sss");
+    @GetMapping("/sss")
+    @Operation(description = "测试")
+    public BaseResponse auth(){
+        return ResultUtils.success("sdsdsdsd-------");
     }
 }
