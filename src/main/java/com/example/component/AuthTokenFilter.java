@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -43,48 +44,32 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    private static final List<String> WHITE_LIST_URL = Arrays.asList(
-            "/user/login",
-            "/user/register",
-            "/doc.html",
-            "/webjars/**",
-            "/doc.html#/**",
-            "/v3/**",
-            "/swagger-resources/**"
-    );
-    private final PathMatcher pathMatcher;
-
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String requestPath = request.getRequestURI();
 
-        // 检查请求路径是否在白名单中
-        if (WHITE_LIST_URL.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestPath))) {
-            filterChain.doFilter(request, response); //如果在白名单中则跳过JWT校验
-            return;
-        }
-
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null) {
-            System.out.println("This is AuthTokenFilter \n");
-            response.sendError(400,"请登录");
-            return;
-        }
-        String jwt = authHeader.substring(7);
-
-        if (jwtUtil.validateJwtToken(jwt)){
-            String key = RedisToken.LOGIN_TOKEN + jwt;
-            Map<Object, Object> userMap = stringRedisTemplate.opsForHash().entries(key);
-            if (userMap.isEmpty()){
-                UserHolder.removeUser();
-                return;
+        try{
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new AuthenticationException("未登录");
             }
-            UserResponse userResponse = BeanUtil.fillBeanWithMap(userMap,new UserResponse(),false);
-            User user = userRepository.findByUsername(userResponse.getUsername());
-            UserHolder.saveUser(user);
 
-            stringRedisTemplate.expire(key,30, TimeUnit.MINUTES);
+            String jwt = authHeader.substring(7);
+
+            if (jwtUtil.validateJwtToken(jwt)){
+                String key = RedisToken.LOGIN_TOKEN + jwt;
+                Map<Object, Object> userMap = stringRedisTemplate.opsForHash().entries(key);
+                if (userMap.isEmpty()){
+                    UserHolder.removeUser();
+                    throw new AuthenticationException("登录过期，请重新登录");
+                }
+                UserResponse userResponse = BeanUtil.fillBeanWithMap(userMap,new UserResponse(),false);
+                User user = userRepository.findByUsername(userResponse.getUsername());
+                UserHolder.saveUser(user);
+
+                stringRedisTemplate.expire(key,30, TimeUnit.MINUTES);
+            }
+        } catch (Exception e){
+            logger.error("Cannot set user authentication: {}", e.getMessage());
         }
         filterChain.doFilter(request,response);
     }

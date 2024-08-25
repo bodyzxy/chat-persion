@@ -10,7 +10,7 @@ spring:
     password: bodyzxy
   app:
     jwtSecret: ==========================bodyzxy============================
-    jwtExpirationMs: 86400000
+    jwtExpirationMs: 86400000  #24小时
   jpa:
     hibernate:
       ddl-auto: update

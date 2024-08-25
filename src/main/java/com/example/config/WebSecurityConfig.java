@@ -2,7 +2,6 @@ package com.example.config;
 
 import com.example.component.AuthEntryPointJwt;
 import com.example.component.AuthTokenFilter;
-import com.example.component.AuthTokenFilterOther;
 import com.example.component.StringSetDeserializer;
 import com.example.service.impl.UserDetailsServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +41,6 @@ public class WebSecurityConfig {
 
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
-    private final AuthTokenFilterOther authenticationJwtTokenOther;
 
 
     private static String[] WHITE_LIST_URL = {
@@ -58,17 +56,16 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth ->
-//                    auth
-//                            .requestMatchers(WHITE_LIST_URL).permitAll()
-//                            .anyRequest().authenticated()
-//                )
+                .authorizeHttpRequests(auth ->
+                    auth
+                            .requestMatchers(WHITE_LIST_URL).permitAll()
+                            .anyRequest().authenticated()
+                )
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPointJwt))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authenticationJwtTokenOther, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(authenticationJwtTokenFilter, authenticationJwtTokenOther.getClass());
+        http.addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
