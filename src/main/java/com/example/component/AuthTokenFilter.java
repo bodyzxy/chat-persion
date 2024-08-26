@@ -16,6 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -65,6 +69,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 UserResponse userResponse = BeanUtil.fillBeanWithMap(userMap,new UserResponse(),false);
                 User user = userRepository.findByUsername(userResponse.getUsername());
                 UserHolder.saveUser(user);
+
+                //将身份验证信息存入SecurityContext以便后续请求识别---filterChain中会使用到如果不设置将无法继续执行
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 stringRedisTemplate.expire(key,30, TimeUnit.MINUTES);
             }

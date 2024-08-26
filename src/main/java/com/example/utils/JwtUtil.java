@@ -1,18 +1,17 @@
 package com.example.utils;
 
-import com.example.service.UserDetailsService;
+import com.example.component.RedisToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.net.Authenticator;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
@@ -32,9 +31,10 @@ public class JwtUtil {
     @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    public String generateToken(Map<String, Object> userMap) {
-//        UserDetailsService userDetailsService = (UserDetailsService) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @Autowired
+    private  StringRedisTemplate stringRedisTemplate;
 
+    public String generateToken(Map<String, Object> userMap) {
         return Jwts.builder()
                 .setSubject(userMap.get("username").toString())
                 .setIssuedAt(new Date())

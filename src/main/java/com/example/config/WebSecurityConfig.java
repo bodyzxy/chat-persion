@@ -43,7 +43,7 @@ public class WebSecurityConfig {
 
 
 
-    private static String[] WHITE_LIST_URL = {
+    private static final String[] WHITE_LIST_URL = {
             "/user/login",
             "/user/register",
             "/doc.html",

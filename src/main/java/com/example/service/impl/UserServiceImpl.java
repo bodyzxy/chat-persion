@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
 
         String tokenKey = RedisToken.LOGIN_TOKEN + jwt;
         stringRedisTemplate.opsForHash().putAll(tokenKey,userMap);
-        stringRedisTemplate.expire(tokenKey,30, TimeUnit.MINUTES);
+        stringRedisTemplate.expire(tokenKey,24, TimeUnit.HOURS);
         Set<Role> roles = userRepository.findRolesByUserId(userResponse.getId());
         List<String> role = roles.stream().map(Role::getRole).collect(Collectors.toList());
 
