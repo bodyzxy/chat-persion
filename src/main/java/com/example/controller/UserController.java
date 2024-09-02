@@ -1,8 +1,10 @@
 package com.example.controller;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.PdfRequest;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
+import com.example.service.PdfService;
 import com.example.service.UserService;
 import com.example.utils.ResultUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
@@ -12,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final PdfService pdfService;
 
     @PostMapping("/login")
     @Operation(description = "登录")
@@ -41,9 +45,9 @@ public class UserController {
         return userService.register(registerRequest);
     }
 
-    @GetMapping("/sss")
-    @Operation(description = "测试")
-    public BaseResponse auth(){
-        return ResultUtils.success("sdsdsdsd-------");
+    @PostMapping("/update")
+    @Operation(description = "上传pdf")
+    public BaseResponse updatePdf(@RequestBody @Valid PdfRequest pdfRequest){
+        return pdfService.updatePdf(pdfRequest);
     }
 }
