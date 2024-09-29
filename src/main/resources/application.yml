@@ -5,18 +5,19 @@ spring:
   application:
     name: chat-person
   datasource:
-    url: jdbc:mysql://localhost:3306/security?useSSL=false
-    username: root
+    url: jdbc:postgresql://localhost:5432/chat-person-test
+    username: postgres
     password: bodyzxy
   app:
     jwtSecret: ==========================bodyzxy============================
     jwtExpirationMs: 86400000  #24小时
   jpa:
+    generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # 使用 update 而不是 create
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     open-in-view: true
   data:
