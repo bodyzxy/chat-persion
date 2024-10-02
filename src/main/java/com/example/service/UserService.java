@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.component.BaseResponse;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author bodyzxy
@@ -13,4 +14,6 @@ public interface UserService {
     BaseResponse register(RegisterRequest registerRequest);
 
     BaseResponse login(SignInRequest signInRequest);
+
+    BaseResponse logout(HttpServletRequest request);
 }

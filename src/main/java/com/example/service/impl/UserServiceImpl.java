@@ -17,6 +17,7 @@ import com.example.repository.UserRepository;
 import com.example.service.UserService;
 import com.example.utils.JwtUtil;
 import com.example.utils.ResultUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -58,7 +59,6 @@ public class UserServiceImpl implements UserService {
                 registerRequest.getEmail(),
                 passwordEncoder.encode(registerRequest.getPassword())
         );
-
         Set<String> registerRoel = registerRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
@@ -123,5 +123,28 @@ public class UserServiceImpl implements UserService {
                         role
                 )
         );
+    }
+
+    @Override
+    public BaseResponse logout(HttpServletRequest request) {
+        //从请求头中获取JWT
+        String  jwt = request.getHeader("Authorization");
+        //检查JWT是否存在
+        if (jwt == null || jwt.isEmpty()){
+            return ResultUtils.error(ErrorCode.TOKEN_ERROR);
+        }
+        //去掉“Bearer ”前缀
+        if (jwt.startsWith("Bearer ")){
+            jwt = jwt.substring(7);
+        }
+        //构造Redis中存储该用户信息的key
+        String tokenKey = RedisToken.LOGIN_TOKEN + jwt;
+        //删除Redis中对应的记录
+        Boolean result = stringRedisTemplate.delete(tokenKey);
+        if (Boolean.TRUE.equals(result)){
+            return ResultUtils.success("退出成功");
+        }else {
+            return ResultUtils.error(ErrorCode.TOKEN_ERROR);
+        }
     }
 }

@@ -10,6 +10,7 @@ import com.example.utils.ResultUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +46,21 @@ public class UserController {
         return userService.register(registerRequest);
     }
 
+    @GetMapping("/logout")
+    @Operation(description = "退出")
+    public BaseResponse logout(HttpServletRequest request){
+        return userService.logout(request);
+    }
+
     @PostMapping("/update")
     @Operation(description = "上传pdf")
     public BaseResponse updatePdf(@RequestBody @Valid PdfRequest pdfRequest){
         return pdfService.updatePdf(pdfRequest);
+    }
+
+    @GetMapping("/test")
+    @Operation(description = "测试")
+    public String test(){
+        return "test";
     }
 }
