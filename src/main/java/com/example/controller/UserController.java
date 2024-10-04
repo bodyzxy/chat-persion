@@ -54,8 +54,8 @@ public class UserController {
 
     @PostMapping("/update")
     @Operation(description = "上传pdf")
-    public BaseResponse updatePdf(@RequestBody @Valid PdfRequest pdfRequest){
-        return pdfService.updatePdf(pdfRequest);
+    public BaseResponse updatePdf(@RequestParam("file") MultipartFile file){
+        return pdfService.updatePdf(file);
     }
 
     @GetMapping("/test")

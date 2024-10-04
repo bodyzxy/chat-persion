@@ -15,6 +15,7 @@ import com.example.model.response.UserResponse;
 import com.example.repository.RoleRepository;
 import com.example.repository.UserRepository;
 import com.example.service.UserService;
+import com.example.thread.UserHolder;
 import com.example.utils.JwtUtil;
 import com.example.utils.ResultUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -141,6 +142,8 @@ public class UserServiceImpl implements UserService {
         String tokenKey = RedisToken.LOGIN_TOKEN + jwt;
         //删除Redis中对应的记录
         Boolean result = stringRedisTemplate.delete(tokenKey);
+        //删除线程中的用户
+        UserHolder.removeUser();
         if (Boolean.TRUE.equals(result)){
             return ResultUtils.success("退出成功");
         }else {
