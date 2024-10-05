@@ -3,32 +3,35 @@ package com.example.service.impl;
 import com.example.component.BaseResponse;
 import com.example.component.CustomPgVectorStore;
 import com.example.component.ErrorCode;
+import com.example.model.MinioFile;
 import com.example.model.User;
+import com.example.repository.MinioFileRepository;
 import com.example.repository.UserRepository;
 import com.example.service.PdfService;
 import com.example.thread.UserHolder;
+import com.example.utils.MinioUtil;
 import com.example.utils.ResultUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingClient;
+import org.springframework.ai.openai.OpenAiEmbeddingClient;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.reader.ExtractedTextFormatter;
-import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
-import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ai.document.Document;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author bodyzxy
@@ -46,6 +49,8 @@ public class PdfServiceImpl implements PdfService {
     @Value("${spring.ai.openai.base-url}")
     private String defaultBaseUrl;
     private final UserRepository userRepository;
+    private final MinioUtil minioUtil;
+    private final MinioFileRepository minioFileRepository;
 
     @Override
     public BaseResponse updatePdf(MultipartFile file) {
@@ -60,13 +65,28 @@ public class PdfServiceImpl implements PdfService {
 
             FileSystemResource resource = new FileSystemResource(path.toFile());
 
+            VectorStore vectorStore = randomVectorStore(id);
+
             // 使用 TikaDocumentReader 替代 ParagraphPdfDocumentReader
             TikaDocumentReader reader = new TikaDocumentReader(resource);
 
-            VectorStore vectorStore = randomVectorStore(id);
+            List<Document> documents = reader.get();
             TokenTextSplitter splitter = new TokenTextSplitter();
+            List<Document> applyList = splitter.apply(documents);
 
-            vectorStore.accept(splitter.apply(reader.get()));
+            vectorStore.accept(applyList);
+
+            //此处将文件存入minio可以获取文件名
+            String url = minioUtil.uploadFile(file);
+            log.info(url);
+            long time = System.currentTimeMillis();
+            minioFileRepository.save(MinioFile.builder()
+                            .fileName(fileName)
+                            .vectorId(applyList.stream().map(Document::getId).collect(Collectors.toList()))
+                            .url(url)
+                            .createTime(new Date(time))
+                            .updateTime(new Date(time))
+                    .build());
             return ResultUtils.success("添加成功");
         } catch (Exception e){
             e.printStackTrace();
@@ -75,9 +95,9 @@ public class PdfServiceImpl implements PdfService {
     }
 
     private VectorStore randomVectorStore(Long id){
-        OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl+"/files", defaultApiKey);
-//        EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
-        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
-        return new CustomPgVectorStore(jdbcTemplate,openAiEmbeddingModel,id);
+        OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
+        EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
+//        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
+        return new CustomPgVectorStore(jdbcTemplate,embeddingClient,id);
     }
 }

@@ -1,11 +1,14 @@
 package com.example.component;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingClient;
 import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author bodyzxy
@@ -14,11 +17,13 @@ import java.util.List;
  */
 public class CustomPgVectorStore extends PgVectorStore {
     private Long id;
-    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, OpenAiEmbeddingModel embeddingClient) {
+
+
+    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient) {
         super(jdbcTemplate, embeddingClient);
     }
 
-    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, OpenAiEmbeddingModel embeddingClient, Long id) {
+    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient, Long id) {
         super(jdbcTemplate, embeddingClient);
         this.id = id;
     }
@@ -29,12 +34,21 @@ public class CustomPgVectorStore extends PgVectorStore {
             throw new IllegalArgumentException("Documents list cannot be null or empty");
         }
 
+        List<Document> processedDocuments = new ArrayList<>();
         for (Document document : documents) {
             if (document == null) {
                 throw new IllegalArgumentException("Document cannot be null");
             }
-            document.getMetadata().put("userId", id);
             // 其他操作
+            Map<String, Object> metadata = new HashMap<>(document.getMetadata());
+            metadata.put("userId",id);
+            Document processedDocument = new Document(
+                    document.getId(),
+                    document.getContent(),
+                    metadata
+            );
+            processedDocuments.add(processedDocument);
         }
+        super.add(processedDocuments);
     }
 }

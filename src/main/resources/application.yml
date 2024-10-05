@@ -34,7 +34,7 @@ spring:
   ai:
     openai:
       api-key: sk-zk2e27818546028c11740ed9f4d71d3f46966c1f2ae9e310
-      base-url: https://api.zhizengzeng.com/v1
+      base-url: https://api.zhizengzeng.com
       chat:
         options:
           temperature: 0.7
@@ -48,3 +48,13 @@ spring:
       enabled: true
       max-file-size: 100MB
       max-request-size: 100MB
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9001}
+  access-key: ${MINIO_ACCESS_KEY:admin}
+  secret-key: ${MINIO_SECRET_KEY:adminbodyzxy}
+  bucket-name: ${BUCKET_NAME:chat-person-test}
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    org.springframework.test: DEBUG
