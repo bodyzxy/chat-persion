@@ -45,6 +45,10 @@ public class MinioFile {
     @Column(columnDefinition = "TEXT")
     private List<String> vectorId;
 
+    // 用户ID字段
+    @Column(name = "user_id")
+    private Long userId;
+
     /**
      * 创建时间/上传时间
      */

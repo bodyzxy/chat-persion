@@ -1,7 +1,8 @@
 package com.example.service;
 
 import com.example.component.BaseResponse;
-import com.example.model.Request.PdfRequest;
+import com.example.model.Request.DeleteFilesRequest;
+import com.example.model.Request.QueryFileRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -11,4 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface PdfService {
     BaseResponse updatePdf(MultipartFile file);
+
+    BaseResponse contents(QueryFileRequest request);
+
+    BaseResponse deleteFile(Long id);
 }

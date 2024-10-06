@@ -1,7 +1,10 @@
 package com.example.controller;
 
 import com.example.component.BaseResponse;
+import com.example.component.ErrorCode;
+import com.example.model.Request.QueryFileRequest;
 import com.example.service.PdfService;
+import com.example.utils.ResultUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,8 +29,25 @@ public class FileController {
     private final PdfService pdfService;
 
     @PostMapping("/update")
-    @Operation(description = "上传pdf")
+    @Operation(description = "上传文件")
     public BaseResponse updatePdf(@RequestParam("file") MultipartFile file){
         return pdfService.updatePdf(file);
     }
+
+    @GetMapping("/contents")
+    @Operation(description = "文件查询")
+    public BaseResponse contents(QueryFileRequest request){
+        if (request.page() == null || request.pageSize() == null){
+            return ResultUtils.error(ErrorCode.PAGE_ERROR);
+        }
+        return pdfService.contents(request);
+    }
+
+    @DeleteMapping("/deleteFile")
+    @Operation(description = "删除文件")
+    public BaseResponse deleteFile(Long id){
+        return pdfService.deleteFile(id);
+    }
+
+
 }

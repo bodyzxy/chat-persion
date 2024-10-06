@@ -14,6 +14,8 @@ public enum ErrorCode {
     UPDATE_ERROR(400030,"添加失败"),
     ERROR(400,"注册失败"),
     TOKEN_ERROR(400040,"Token is missing"),
+    PAGE_ERROR(400050,"page 或 pageSize为空"),
+    FILE_ERROR(400060,"文件删除错误"),
     NO_AUTH_ERROR(40101, "无权限");
 
     private final int code;

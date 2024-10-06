@@ -133,5 +133,15 @@ public class MinioUtil {
         minioClient.removeObject(RemoveObjectArgs.builder().bucket(BUCKET_NAME).object(fileName).build());
     }
 
+    /**
+     * 截取url地址
+     * @param url
+     * @return
+     */
+    public static String getMinioFileName(String url) {
+        int endIndex = url.contains("?") ? url.indexOf("?") : url.length();
+        return url.substring(url.lastIndexOf("/") + 1,endIndex);
+    }
+
 
 }

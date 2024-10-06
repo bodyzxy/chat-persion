@@ -4,6 +4,7 @@ import com.example.component.BaseResponse;
 import com.example.component.CustomPgVectorStore;
 import com.example.component.ErrorCode;
 import com.example.model.MinioFile;
+import com.example.model.Request.QueryFileRequest;
 import com.example.model.User;
 import com.example.repository.MinioFileRepository;
 import com.example.repository.UserRepository;
@@ -18,19 +19,22 @@ import org.springframework.ai.openai.OpenAiEmbeddingClient;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.ai.document.Document;
 
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -84,6 +88,7 @@ public class PdfServiceImpl implements PdfService {
                             .fileName(fileName)
                             .vectorId(applyList.stream().map(Document::getId).collect(Collectors.toList()))
                             .url(url)
+                            .userId(id)
                             .createTime(new Date(time))
                             .updateTime(new Date(time))
                     .build());
@@ -99,5 +104,38 @@ public class PdfServiceImpl implements PdfService {
         EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
 //        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
         return new CustomPgVectorStore(jdbcTemplate,embeddingClient,id);
+    }
+
+    private VectorStore randomVectorStore(){
+        OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
+        EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
+//        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
+        return new PgVectorStore(jdbcTemplate,embeddingClient);
+    }
+
+    @Override
+    public BaseResponse contents(QueryFileRequest request) {
+        Page<MinioFile> filePage = minioFileRepository.findByUserIdContaining(request.userId(), PageRequest.of(request.page(), request.pageSize()));
+        return ResultUtils.success(filePage);
+    }
+
+    @Override
+    public BaseResponse deleteFile(Long id) {
+
+        Optional<MinioFile> file = minioFileRepository.findById(id);
+        MinioFile processedFile = file.orElseGet(() -> {
+            return null;
+        });
+
+        if (processedFile != null) {
+            minioFileRepository.delete(processedFile);
+            VectorStore vectorStore = randomVectorStore();
+            String minioFilename = MinioUtil.getMinioFileName(processedFile.getUrl());
+            minioUtil.deleteFile(minioFilename);
+            vectorStore.delete(processedFile.getVectorId());
+            return ResultUtils.success("删除成功");
+        } else {
+            return ResultUtils.error(ErrorCode.PAGE_ERROR);
+        }
     }
 }
