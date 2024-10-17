@@ -3,9 +3,12 @@ package com.example.service.impl;
 import com.example.component.BaseResponse;
 import com.example.component.CustomPgVectorStore;
 import com.example.component.ErrorCode;
+import com.example.model.Database;
 import com.example.model.MinioFile;
+import com.example.model.Request.FileUpdate;
 import com.example.model.Request.QueryFileRequest;
 import com.example.model.User;
+import com.example.repository.DatabaseRepository;
 import com.example.repository.MinioFileRepository;
 import com.example.repository.UserRepository;
 import com.example.service.PdfService;
@@ -55,11 +58,13 @@ public class PdfServiceImpl implements PdfService {
     private final UserRepository userRepository;
     private final MinioUtil minioUtil;
     private final MinioFileRepository minioFileRepository;
+    private final DatabaseRepository databaseRepository;
 
     @Override
-    public BaseResponse updatePdf(MultipartFile file) {
+    public BaseResponse updatePdf(FileUpdate fileUpdate) {
         try{
             User user = UserHolder.getUser();
+            MultipartFile file = fileUpdate.file();
             String username = user.getUsername();
             Long id = userRepository.findIdByUsername(username);
             String fileName = file.getOriginalFilename();
@@ -84,14 +89,25 @@ public class PdfServiceImpl implements PdfService {
             String url = minioUtil.uploadFile(file);
             log.info(url);
             long time = System.currentTimeMillis();
-            minioFileRepository.save(MinioFile.builder()
+            MinioFile savedMinioFile = minioFileRepository.save(MinioFile.builder()
                             .fileName(fileName)
                             .vectorId(applyList.stream().map(Document::getId).collect(Collectors.toList()))
                             .url(url)
-                            .userId(id)
+                            .userId(user)
                             .createTime(new Date(time))
                             .updateTime(new Date(time))
                     .build());
+
+            Database database = databaseRepository.findById(id).orElse(null);
+            if(database == null){
+                return ResultUtils.error(ErrorCode.UPDATE_ERROR);
+            }
+            //建立数据库和文件的关联
+            database.setFileId(savedMinioFile.getId());
+            database.setUser(user);
+            //同步数据到user
+            user.addDatabaseAndMinioFile(database,savedMinioFile);
+
             return ResultUtils.success("添加成功");
         } catch (Exception e){
             e.printStackTrace();
@@ -128,6 +144,11 @@ public class PdfServiceImpl implements PdfService {
         });
 
         if (processedFile != null) {
+            //先删除对应用户中的信息
+            User user = processedFile.getUserId();
+            if (user != null) {
+                user.getMinioFiles().remove(processedFile);
+            }
             minioFileRepository.delete(processedFile);
             VectorStore vectorStore = randomVectorStore();
             String minioFilename = MinioUtil.getMinioFileName(processedFile.getUrl());
@@ -138,4 +159,10 @@ public class PdfServiceImpl implements PdfService {
             return ResultUtils.error(ErrorCode.PAGE_ERROR);
         }
     }
+
+//    @Override
+//    public BaseResponse contentsAll(Long id) {
+//        Page<MinioFile> allContens = minioFileRepository.find
+//        return null;
+//    }
 }

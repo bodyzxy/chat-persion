@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,8 +60,31 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @OneToMany(mappedBy = "userId")
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MinioFile> minioFiles;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Database> databases;
+
+    public void addDatabaseAndMinioFile(Database database, MinioFile minioFile) {
+        // 确保数据库列表初始化
+        if (this.databases == null) {
+            this.databases = new ArrayList<>();
+        }
+        // 确保Minio文件列表初始化
+        if (this.minioFiles == null) {
+            this.minioFiles = new ArrayList<>();
+        }
+
+        // 添加Database
+        this.databases.add(database);
+        database.setUser(this); // 反向设置关系
+
+        // 添加MinioFile
+        this.minioFiles.add(minioFile);
+        minioFile.setUser(this); // 反向设置关系
+    }
+
 
     public User(String username, String email, String password) {
         this.username = username;

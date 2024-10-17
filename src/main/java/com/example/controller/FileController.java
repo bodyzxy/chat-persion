@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.component.BaseResponse;
 import com.example.component.ErrorCode;
+import com.example.model.Request.FileUpdate;
 import com.example.model.Request.QueryFileRequest;
 import com.example.service.PdfService;
 import com.example.utils.ResultUtils;
@@ -30,18 +31,24 @@ public class FileController {
 
     @PostMapping("/update")
     @Operation(description = "上传文件")
-    public BaseResponse updatePdf(@RequestParam("file") MultipartFile file){
-        return pdfService.updatePdf(file);
+    public BaseResponse updatePdf(FileUpdate fileUpdate){
+        return pdfService.updatePdf(fileUpdate);
     }
 
     @GetMapping("/contents")
-    @Operation(description = "文件查询")
+    @Operation(description = "文件查询-分页查询")
     public BaseResponse contents(QueryFileRequest request){
         if (request.page() == null || request.pageSize() == null){
             return ResultUtils.error(ErrorCode.PAGE_ERROR);
         }
         return pdfService.contents(request);
     }
+
+//    @GetMapping("/contents/{id}")
+//    @Operation(description = "文件查询-不分页")
+//    public BaseResponse contentsAll(@PathVariable("id") Long id){
+//        return pdfService.contentsAll(id);
+//    }
 
     @DeleteMapping("/deleteFile")
     @Operation(description = "删除文件")

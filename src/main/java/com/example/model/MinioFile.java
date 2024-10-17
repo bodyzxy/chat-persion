@@ -46,8 +46,9 @@ public class MinioFile {
     private List<String> vectorId;
 
     // 用户ID字段
-    @Column(name = "user_id")
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User userId;
 
     /**
      * 创建时间/上传时间
@@ -58,4 +59,8 @@ public class MinioFile {
      * 更新时间
      */
     private Date updateTime;
+
+    public void setUser(User user) {
+        this.userId = user;
+    }
 }
