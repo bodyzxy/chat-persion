@@ -1,0 +1,60 @@
+package com.example.controller;
+
+import com.example.component.BaseResponse;
+import com.example.service.DatabaseService;
+import com.github.xiaoymin.knife4j.annotations.ApiSupport;
+import groovy.util.logging.Slf4j;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * @author bodyzxy
+ * @github https://github.com/bodyzxy
+ * @date 2024/10/17 21:47
+ */
+@RestController
+@RequiredArgsConstructor
+@Slf4j
+@CrossOrigin(origins = "*", maxAge = 3600)//跨域共享，maxAge是最大缓存时间
+@RequestMapping("/database")
+@Tag(name = "DatabaseController",description = "数据库接口")
+@ApiSupport(author = "bodyzxy")
+public class DatabaseController {
+
+    private final DatabaseService databaseService;
+
+    /**
+     * 创建数据库
+     * @param id
+     * @return
+     */
+    @GetMapping("/create/{id}")
+    @Operation(summary = "create",description = "创建数据库")
+    public Long createDatabase(@PathVariable Long id){
+        return databaseService.createDatabase(id);
+    }
+
+    /**
+     * 公开数据库
+     * @param id
+     * @return
+     */
+    @GetMapping("/shareDatabase/{id}")
+    @Operation(summary = "shareDatabase",description = "公开数据库")
+    public BaseResponse shareDatabase(@PathVariable Long id){
+        return databaseService.shareDatabase(id);
+    }
+
+    /**
+     * 删除数据库
+     * @param id
+     * @return
+     */
+    @GetMapping("/delete/{id}")
+    @Operation(summary = "delete", description = "删除数据库")
+    public BaseResponse deleteDatabase(@PathVariable Long id){
+        return databaseService.delete(id);
+    }
+}

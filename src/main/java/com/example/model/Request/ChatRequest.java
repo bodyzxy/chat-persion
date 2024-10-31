@@ -9,7 +9,7 @@ import java.util.List;
  * @github https://github.com/bodyzxy
  * @date 2024/10/6 16:59
  */
-public record ChatRequest(List<Message> messages,ChatOptions chatOptions,String prompt) {
+public record ChatRequest(List<ChatMessage> messages,ChatOptions chatOptions,String prompt) {
     /**
      * @param messages history context message
      * @param chatOptions chat settings

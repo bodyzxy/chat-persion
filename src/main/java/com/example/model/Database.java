@@ -34,11 +34,23 @@ public class Database {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "file_id")
+    @Column(name = "file_id",nullable = true)
     private Long fileId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user;
+    @Column(name = "is_delete",nullable = false)
+    private Boolean isDeleted = false;
 
+    //是否公开
+    @Column(name = "is_public",nullable = false)
+    private Boolean isPublic = false;
+
+    //收藏数量
+    @Column(name = "star_number",nullable = false)
+    private Integer starNumber=0;
+
+    public Database(Long userId, String name, Date date) {
+        this.userId = userId;
+        this.name = name;
+        this.date = date;
+    }
 }

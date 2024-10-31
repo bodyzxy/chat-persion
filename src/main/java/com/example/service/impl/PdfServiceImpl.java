@@ -60,6 +60,11 @@ public class PdfServiceImpl implements PdfService {
     private final MinioFileRepository minioFileRepository;
     private final DatabaseRepository databaseRepository;
 
+    /**
+     * 文件上传
+     * @param fileUpdate
+     * @return
+     */
     @Override
     public BaseResponse updatePdf(FileUpdate fileUpdate) {
         try{
@@ -74,7 +79,7 @@ public class PdfServiceImpl implements PdfService {
 
             FileSystemResource resource = new FileSystemResource(path.toFile());
 
-            VectorStore vectorStore = randomVectorStore(id);
+            VectorStore vectorStore = randomVectorStore(id,fileUpdate.databaseId());
 
             // 使用 TikaDocumentReader 替代 ParagraphPdfDocumentReader
             TikaDocumentReader reader = new TikaDocumentReader(resource);
@@ -93,7 +98,7 @@ public class PdfServiceImpl implements PdfService {
                             .fileName(fileName)
                             .vectorId(applyList.stream().map(Document::getId).collect(Collectors.toList()))
                             .url(url)
-                            .userId(user)
+//                            .userId(user)
                             .createTime(new Date(time))
                             .updateTime(new Date(time))
                     .build());
@@ -104,9 +109,6 @@ public class PdfServiceImpl implements PdfService {
             }
             //建立数据库和文件的关联
             database.setFileId(savedMinioFile.getId());
-            database.setUser(user);
-            //同步数据到user
-            user.addDatabaseAndMinioFile(database,savedMinioFile);
 
             return ResultUtils.success("添加成功");
         } catch (Exception e){
@@ -115,26 +117,43 @@ public class PdfServiceImpl implements PdfService {
         return ResultUtils.error(ErrorCode.UPDATE_ERROR);
     }
 
-    private VectorStore randomVectorStore(Long id){
+    /**
+     * 文件分页
+     * @param id  用户id
+     * @param databaseId  数据库id
+     * @return
+     */
+    private VectorStore randomVectorStore(Long id,Long databaseId){
         OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
         EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
 //        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
-        return new CustomPgVectorStore(jdbcTemplate,embeddingClient,id);
+        return new CustomPgVectorStore(jdbcTemplate,embeddingClient,id,databaseId);
     }
 
-    private VectorStore randomVectorStore(){
+    @Override
+    public VectorStore randomVectorStore(){
         OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
         EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
 //        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
         return new PgVectorStore(jdbcTemplate,embeddingClient);
     }
 
+    /**
+     * 分页查询
+     * @param request
+     * @return
+     */
     @Override
     public BaseResponse contents(QueryFileRequest request) {
         Page<MinioFile> filePage = minioFileRepository.findByUserIdContaining(request.userId(), PageRequest.of(request.page(), request.pageSize()));
         return ResultUtils.success(filePage);
     }
 
+    /**
+     * 删除文件
+     * @param id
+     * @return
+     */
     @Override
     public BaseResponse deleteFile(Long id) {
 
@@ -145,10 +164,10 @@ public class PdfServiceImpl implements PdfService {
 
         if (processedFile != null) {
             //先删除对应用户中的信息
-            User user = processedFile.getUserId();
-            if (user != null) {
-                user.getMinioFiles().remove(processedFile);
-            }
+//            User user = processedFile.getUserId();
+//            if (user != null) {
+//                user.getMinioFiles().remove(processedFile);
+//            }
             minioFileRepository.delete(processedFile);
             VectorStore vectorStore = randomVectorStore();
             String minioFilename = MinioUtil.getMinioFileName(processedFile.getUrl());
@@ -159,6 +178,7 @@ public class PdfServiceImpl implements PdfService {
             return ResultUtils.error(ErrorCode.PAGE_ERROR);
         }
     }
+
 
 //    @Override
 //    public BaseResponse contentsAll(Long id) {

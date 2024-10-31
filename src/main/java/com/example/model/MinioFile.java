@@ -45,10 +45,13 @@ public class MinioFile {
     @Column(columnDefinition = "TEXT")
     private List<String> vectorId;
 
+    @Column(name = "is_delete",nullable = false)
+    private Boolean isDeleted = false;
+
     // 用户ID字段
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User userId;
+//    @ManyToOne
+//    @JoinColumn(name = "user_id", referencedColumnName = "id")
+//    private User userId;
 
     /**
      * 创建时间/上传时间
@@ -60,7 +63,7 @@ public class MinioFile {
      */
     private Date updateTime;
 
-    public void setUser(User user) {
-        this.userId = user;
-    }
+//    public void setUser(User user) {
+//        this.userId = user;
+//    }
 }

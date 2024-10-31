@@ -17,15 +17,17 @@ import java.util.Map;
  */
 public class CustomPgVectorStore extends PgVectorStore {
     private Long id;
+    private Long databaseId;
 
 
     public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient) {
         super(jdbcTemplate, embeddingClient);
     }
 
-    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient, Long id) {
+    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient, Long id, Long databaseId) {
         super(jdbcTemplate, embeddingClient);
         this.id = id;
+        this.databaseId = databaseId;
     }
 
     @Override
@@ -42,6 +44,7 @@ public class CustomPgVectorStore extends PgVectorStore {
             // 其他操作
             Map<String, Object> metadata = new HashMap<>(document.getMetadata());
             metadata.put("userId",id);
+            metadata.put("databaseId",databaseId);
             Document processedDocument = new Document(
                     document.getId(),
                     document.getContent(),

@@ -4,6 +4,7 @@ import com.example.component.BaseResponse;
 import com.example.model.Request.DeleteFilesRequest;
 import com.example.model.Request.FileUpdate;
 import com.example.model.Request.QueryFileRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -19,4 +20,6 @@ public interface PdfService {
     BaseResponse deleteFile(Long id);
 
 //    BaseResponse contentsAll(Long id);
+// 初始化向量数据库操作接口
+    VectorStore randomVectorStore();
 }

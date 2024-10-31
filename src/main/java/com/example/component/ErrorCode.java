@@ -16,6 +16,8 @@ public enum ErrorCode {
     TOKEN_ERROR(400040,"Token is missing"),
     PAGE_ERROR(400050,"page 或 pageSize为空"),
     FILE_ERROR(400060,"文件删除错误"),
+    DATABASE_ERROR(400070,"数据库已删除"),
+    PROMPT_ERROR(400080,"prompt为空"),
     NO_AUTH_ERROR(40101, "无权限");
 
     private final int code;

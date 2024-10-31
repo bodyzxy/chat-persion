@@ -47,6 +47,11 @@ public class User {
     @Size(max = 50)
     private String phone;
 
+    private String address;
+
+    @Column(name = "info_user",nullable = true)
+    private String infoUser;
+
     @Column(name = "is_delete",nullable = false)
     private Boolean isDeleted = false;
 
@@ -60,29 +65,30 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MinioFile> minioFiles;
+//    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @Column(name = "minio_files", nullable = true)
+//    private List<MinioFile> minioFiles;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Database> databases;
 
-    public void addDatabaseAndMinioFile(Database database, MinioFile minioFile) {
+    public void addDatabaseAndMinioFile(Database database) {
         // 确保数据库列表初始化
         if (this.databases == null) {
             this.databases = new ArrayList<>();
         }
         // 确保Minio文件列表初始化
-        if (this.minioFiles == null) {
-            this.minioFiles = new ArrayList<>();
-        }
+//        if (this.minioFiles == null) {
+//            this.minioFiles = new ArrayList<>();
+//        }
 
         // 添加Database
         this.databases.add(database);
-        database.setUser(this); // 反向设置关系
+//        database.setUser(this); // 反向设置关系
 
         // 添加MinioFile
-        this.minioFiles.add(minioFile);
-        minioFile.setUser(this); // 反向设置关系
+//        this.minioFiles.add(minioFile);
+//        minioFile.setUser(this); // 反向设置关系
     }
 
 
