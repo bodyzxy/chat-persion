@@ -52,6 +52,9 @@ public class User {
     @Column(name = "info_user",nullable = true)
     private String infoUser;
 
+    //介绍
+    private String introduction;
+
     @Column(name = "is_delete",nullable = false)
     private Boolean isDeleted = false;
 

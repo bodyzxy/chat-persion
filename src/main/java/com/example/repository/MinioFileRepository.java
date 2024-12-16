@@ -13,5 +13,5 @@ import org.springframework.data.domain.Pageable;
 public interface MinioFileRepository extends JpaRepository<MinioFile, Long> {
     Page<MinioFile> findByUserIdContaining(Long keyword, Pageable pageable);
 
-    Page<MinioFile> findAllByUserId(Long userId);
+//    Page<MinioFile> findAllByUserId(Long userId);
 }

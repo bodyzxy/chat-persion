@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,4 +17,6 @@ public interface UserService {
     BaseResponse login(SignInRequest signInRequest);
 
     BaseResponse logout(HttpServletRequest request);
+
+    BaseResponse changeIntroduction(ChangeIntroduction changeIntroduction);
 }

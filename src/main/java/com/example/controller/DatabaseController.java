@@ -27,13 +27,14 @@ public class DatabaseController {
 
     /**
      * 创建数据库
-     * @param id
+     * @param id 用户ID
+     * @param name 数据库名
      * @return
      */
-    @GetMapping("/create/{id}")
+    @GetMapping("/create/{id}/{name}")
     @Operation(summary = "create",description = "创建数据库")
-    public Long createDatabase(@PathVariable Long id){
-        return databaseService.createDatabase(id);
+    public Long createDatabase(@PathVariable Long id, @PathVariable String name){
+        return databaseService.createDatabase(id, name);
     }
 
     /**
@@ -45,6 +46,33 @@ public class DatabaseController {
     @Operation(summary = "shareDatabase",description = "公开数据库")
     public BaseResponse shareDatabase(@PathVariable Long id){
         return databaseService.shareDatabase(id);
+    }
+
+    /**
+     * 获取公开的数据库
+     * @return
+     */
+    @GetMapping("/getShareDatabase")
+    @Operation(summary = "getShareDatabase", description = "获取公开的数据库")
+    public BaseResponse getShareDatabase(){
+        return databaseService.getShareDatabase();
+    }
+
+    /**
+     * 获取用户的数据库
+     * @param userId
+     * @return
+     */
+    @GetMapping("/getUserData/{userId}")
+    @Operation(summary = "getUserDataBase", description = "获取某位用户的数据库")
+    public BaseResponse getUserDataBase(@PathVariable Long userId){
+        return databaseService.getUserDataBase(userId);
+    }
+
+    @GetMapping("/getHotDatabase")
+    @Operation(summary = "getHotDatabase", description = "获取热门数据库")
+    public BaseResponse getHotDatabase(){
+        return databaseService.getHotDatabase();
     }
 
     /**

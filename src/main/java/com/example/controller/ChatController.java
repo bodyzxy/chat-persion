@@ -1,7 +1,9 @@
 package com.example.controller;
 
+import com.example.component.BaseResponse;
 import com.example.model.Request.ChatRequest;
 import com.example.service.ChatService;
+import com.example.utils.ResultUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,8 +31,15 @@ public class ChatController {
 
     @Operation(summary = "stream",description = "流式对话接口")
     @PostMapping("/stream")
+    //TODO:参数传递需要加一个userid和databaseID
     public Flux<ChatResponse> stream(@RequestBody ChatRequest request) {
         return chatService.ragChat(request).flatMapSequential(Flux::just);
+    }
+
+    @Operation(summary = "text", description = "测试接口")
+    @PostMapping("/text")
+    public BaseResponse text(@RequestBody ChatRequest request) {
+        return ResultUtils.success("请求成功");
     }
 
 

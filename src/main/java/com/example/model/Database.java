@@ -31,8 +31,9 @@ public class Database {
     private Date date;
 
     // 用户ID字段
-    @Column(name = "user_id")
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(name = "file_id",nullable = true)
     private Long fileId;
@@ -48,8 +49,8 @@ public class Database {
     @Column(name = "star_number",nullable = false)
     private Integer starNumber=0;
 
-    public Database(Long userId, String name, Date date) {
-        this.userId = userId;
+    public Database(User user, String name, Date date) {
+        this.user = user;
         this.name = name;
         this.date = date;
     }

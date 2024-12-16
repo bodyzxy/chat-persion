@@ -22,9 +22,10 @@ public class JwtResponse {
     private String email;
     private List<String> roles;
 
-    public JwtResponse(String accessToken, String username, List<String> roles) {
+    public JwtResponse(String accessToken, String username,Long userId, List<String> roles) {
         this.token = accessToken;
         this.username = username;
+        this.id = userId;
         this.roles = roles;
     }
 }

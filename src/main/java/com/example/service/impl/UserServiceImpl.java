@@ -6,6 +6,7 @@ import com.example.component.BaseResponse;
 import com.example.component.ErrorCode;
 import com.example.component.RedisToken;
 import com.example.model.ERole;
+import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
 import com.example.model.Role;
@@ -121,6 +122,7 @@ public class UserServiceImpl implements UserService {
                 new JwtResponse(
                         jwt,
                         userResponse.getUsername(),
+                        user.getId(),
                         role
                 )
         );
@@ -149,5 +151,17 @@ public class UserServiceImpl implements UserService {
         }else {
             return ResultUtils.error(ErrorCode.TOKEN_ERROR);
         }
+    }
+
+    @Override
+    public BaseResponse changeIntroduction(ChangeIntroduction changeIntroduction) {
+        Optional<User> user = userRepository.findById(changeIntroduction.userId());
+        if(!user.isPresent()){
+            return ResultUtils.error(ErrorCode.USER_IS_NOT);
+        }else {
+            User user1 = user.get();
+            user1.setIntroduction(changeIntroduction.introduction());
+        }
+        return ResultUtils.success("修改成功");
     }
 }

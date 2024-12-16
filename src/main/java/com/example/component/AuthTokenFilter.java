@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
@@ -51,6 +53,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        log.info("执行Filter-----------------------");
         try{
             String authHeader = request.getHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -68,7 +71,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 }
                 UserResponse userResponse = BeanUtil.fillBeanWithMap(userMap,new UserResponse(),false);
                 User user = userRepository.findByUsername(userResponse.getUsername());
-                UserHolder.saveUser(user);
+                if(UserHolder.getUser() == null){
+                    UserHolder.saveUser(user);
+                }
 
                 //将身份验证信息存入SecurityContext以便后续请求识别---filterChain中会使用到如果不设置将无法继续执行
                 UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
@@ -77,6 +82,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 stringRedisTemplate.expire(key,30, TimeUnit.MINUTES);
+                log.info("执行通过-=-=-=-=-=11111111111111111111111111111");
             }
         } catch (Exception e){
             logger.error("Cannot set user authentication: {}", e.getMessage());

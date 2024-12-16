@@ -48,6 +48,10 @@ public class MinioFile {
     @Column(name = "is_delete",nullable = false)
     private Boolean isDeleted = false;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     // 用户ID字段
 //    @ManyToOne
 //    @JoinColumn(name = "user_id", referencedColumnName = "id")

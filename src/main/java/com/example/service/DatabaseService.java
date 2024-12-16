@@ -8,9 +8,15 @@ import com.example.component.BaseResponse;
  * @date 2024/10/30 21:02
  */
 public interface DatabaseService {
-    Long createDatabase(Long id);
+    Long createDatabase(Long id, String name);
 
     BaseResponse shareDatabase(Long id);
 
     BaseResponse delete(Long id);
+
+    BaseResponse getShareDatabase();
+
+    BaseResponse getUserDataBase(Long userId);
+
+    BaseResponse getHotDatabase();
 }

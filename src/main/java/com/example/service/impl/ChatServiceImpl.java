@@ -10,6 +10,8 @@ import com.example.model.Request.ChatRequest;
 import com.example.service.ChatService;
 import com.example.service.PdfService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.StreamingChatClient;
 import org.springframework.ai.chat.messages.*;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
+    private static final Logger log = LoggerFactory.getLogger(ChatServiceImpl.class);
     @Value("${spring.ai.openai.api-key}")
     private String defaultApiKey;
     @Value("${spring.ai.openai.base-url}")
@@ -65,7 +68,7 @@ public class ChatServiceImpl implements ChatService {
     private List<Message> transformAiMessage(List<ChatMessage> chatMessages) {
         List<Message> messages = new ArrayList<>();
         for (ChatMessage chatMessage : chatMessages) {
-            String role = chatMessage.role();
+            String role = chatMessage.sender();
             String content = chatMessage.content();
             MessageType aiMessageType = MessageType.fromValue(role);
             switch (aiMessageType){
@@ -119,6 +122,7 @@ public class ChatServiceImpl implements ChatService {
         List<Message> messages = transformAiMessage(request.messages());
         messages = checkMessageLength(messages, request);
         Message systemMessage = similaritySearc(prompt);
+        log.info("-----------------------------"+ systemMessage.toString()+"============================");
         messages.add(0, systemMessage);
         //TODO:将聊天记录在数据库中，还有问答
         return streamingChatClient.stream(new Prompt(messages));

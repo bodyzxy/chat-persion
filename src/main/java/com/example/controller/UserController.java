@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
 import com.example.service.UserService;
@@ -45,6 +46,12 @@ public class UserController {
     @Operation(description = "退出")
     public BaseResponse logout(HttpServletRequest request){
         return userService.logout(request);
+    }
+
+    @PostMapping("/changeIntroduction")
+    @Operation(description = "修改个人简介")
+    public BaseResponse changeIntroduction(@RequestBody @Valid ChangeIntroduction changeIntroduction){
+        return userService.changeIntroduction(changeIntroduction);
     }
 
     @GetMapping("/test")
