@@ -4,8 +4,9 @@ import com.example.model.Database;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
-import java.util.Set;
+import org.springframework.data.domain.Page;
 
 /**
  * @author bodyzxy
@@ -13,7 +14,7 @@ import java.util.Set;
  * @date 2024/10/17 21:07
  */
 public interface DatabaseRepository extends JpaRepository<Database, Long> {
-    List<Database> findByIsPublicTrue();
+    Page<Database> findByIsPublicTrue(Pageable pageable);
 
     List<Database> findAllByUserId(Long userId);
 }

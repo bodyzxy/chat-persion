@@ -9,6 +9,7 @@ import com.example.model.ERole;
 import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
+import com.example.model.Request.UserInfo;
 import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.response.JwtResponse;
@@ -162,6 +163,37 @@ public class UserServiceImpl implements UserService {
             User user1 = user.get();
             user1.setIntroduction(changeIntroduction.introduction());
         }
+        return ResultUtils.success("修改成功");
+    }
+
+    @Override
+    public BaseResponse changeUserInfo(UserInfo changeUserInfo) {
+        Optional<User> userOptional = userRepository.findById(changeUserInfo.id());
+        if(!userOptional.isPresent()){
+            return ResultUtils.error(ErrorCode.USER_IS_NOT);
+        }
+        User user = userOptional.get();
+        //姓名唯一
+        boolean isNameTaken = userRepository.existsByUsernameAndIdNot(changeUserInfo.username(), changeUserInfo.id());
+        if (isNameTaken){
+            return ResultUtils.error(ErrorCode.USERNAME_IS_ALREADY);
+        }
+        //邮箱唯一
+        boolean isEmailTaken = userRepository.existsByEmailAndIdNot(changeUserInfo.email(),changeUserInfo.id());
+        if (isEmailTaken){
+            return ResultUtils.error(ErrorCode.EMAIL_IS_CREATE);
+        }
+        //密码一致性
+        if (!changeUserInfo.password().equals(changeUserInfo.rpassword())){
+            return ResultUtils.error(ErrorCode.PASSWORD_ERROR);
+        }
+
+        user.setUsername(changeUserInfo.username());
+        user.setPassword(changeUserInfo.password());
+        user.setEmail(changeUserInfo.email());
+        user.setAddress(changeUserInfo.address());
+        user.setPhone(changeUserInfo.phone());
+        userRepository.save(user);
         return ResultUtils.success("修改成功");
     }
 }

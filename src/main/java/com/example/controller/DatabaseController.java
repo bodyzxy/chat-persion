@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.DatabasePageReq;
 import com.example.service.DatabaseService;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import groovy.util.logging.Slf4j;
@@ -52,10 +53,10 @@ public class DatabaseController {
      * 获取公开的数据库
      * @return
      */
-    @GetMapping("/getShareDatabase")
-    @Operation(summary = "getShareDatabase", description = "获取公开的数据库")
-    public BaseResponse getShareDatabase(){
-        return databaseService.getShareDatabase();
+    @PostMapping("/getShareDatabase")
+    @Operation(summary = "getShareDatabase", description = "获取公开的数据库分页查询")
+    public BaseResponse getShareDatabase(@RequestBody DatabasePageReq databasePageReq){
+        return databaseService.getShareDatabase(databasePageReq);
     }
 
     /**

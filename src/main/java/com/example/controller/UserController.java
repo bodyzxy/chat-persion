@@ -4,6 +4,7 @@ import com.example.component.BaseResponse;
 import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
+import com.example.model.Request.UserInfo;
 import com.example.service.UserService;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,6 +53,12 @@ public class UserController {
     @Operation(description = "修改个人简介")
     public BaseResponse changeIntroduction(@RequestBody @Valid ChangeIntroduction changeIntroduction){
         return userService.changeIntroduction(changeIntroduction);
+    }
+
+    @PostMapping("/changeUserInfo")
+    @Operation(description = "修改个人信息")
+    public BaseResponse changeUserInfo(@RequestBody UserInfo changeUserInfo){
+        return userService.changeUserInfo(changeUserInfo);
     }
 
     @GetMapping("/test")

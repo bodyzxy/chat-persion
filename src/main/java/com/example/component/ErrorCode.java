@@ -20,6 +20,9 @@ public enum ErrorCode {
     DATABASE_NULL(400070,"数据库为空"),
     PROMPT_ERROR(400080,"prompt为空"),
     USER_IS_NOT(400090,"用户为空"),
+    USERNAME_IS_CREATE(400100,"用户名已存在"),
+    EMAIL_IS_CREATE(400101,"邮箱已使用"),
+    PASSWORD_ERROR(400102,"重复密码不一致"),
     NO_AUTH_ERROR(40101, "无权限");
 
     private final int code;

@@ -3,6 +3,7 @@ package com.example.service.impl;
 import com.example.component.BaseResponse;
 import com.example.component.ErrorCode;
 import com.example.model.Database;
+import com.example.model.Request.DatabasePageReq;
 import com.example.model.User;
 import com.example.repository.DatabaseRepository;
 import com.example.repository.UserRepository;
@@ -10,6 +11,7 @@ import com.example.service.DatabaseService;
 import com.example.thread.UserHolder;
 import com.example.utils.ResultUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -63,8 +65,10 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public BaseResponse getShareDatabase() {
-        List<Database> databases = databaseRepository.findByIsPublicTrue();
+    public BaseResponse getShareDatabase(DatabasePageReq databasePageReq) {
+        Pageable pageable = PageRequest.of(databasePageReq.page(), databasePageReq.pageSize());
+
+        Page<Database> databases = databaseRepository.findByIsPublicTrue(pageable);
         if (databases.isEmpty()) {
             return ResultUtils.error(ErrorCode.DATABASE_NULL);
         }

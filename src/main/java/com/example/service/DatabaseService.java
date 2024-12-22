@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.DatabasePageReq;
 
 /**
  * @author bodyzxy
@@ -14,7 +15,7 @@ public interface DatabaseService {
 
     BaseResponse delete(Long id);
 
-    BaseResponse getShareDatabase();
+    BaseResponse getShareDatabase(DatabasePageReq databasePageReq);
 
     BaseResponse getUserDataBase(Long userId);
 

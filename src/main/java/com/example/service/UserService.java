@@ -4,6 +4,7 @@ import com.example.component.BaseResponse;
 import com.example.model.Request.ChangeIntroduction;
 import com.example.model.Request.RegisterRequest;
 import com.example.model.Request.SignInRequest;
+import com.example.model.Request.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -19,4 +20,6 @@ public interface UserService {
     BaseResponse logout(HttpServletRequest request);
 
     BaseResponse changeIntroduction(ChangeIntroduction changeIntroduction);
+
+    BaseResponse changeUserInfo(UserInfo changeUserInfo);
 }

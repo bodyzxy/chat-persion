@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.UserComment;
 
 /**
  * @author bodyzxy
@@ -9,4 +10,6 @@ import com.example.component.BaseResponse;
  */
 public interface CommentService {
     BaseResponse getDatabaseComment(Long id);
+
+    BaseResponse addComment(UserComment userComment);
 }
