@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @CrossOrigin(origins = "*",maxAge = 3600) //跨域共享
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @Slf4j
 @Tag(name="AccountController",description = "用户账户的操作接口")
 @ApiSupport(author = "bodyzxy")
@@ -51,14 +51,20 @@ public class UserController {
 
     @PostMapping("/changeIntroduction")
     @Operation(description = "修改个人简介")
-    public BaseResponse changeIntroduction(@RequestBody @Valid ChangeIntroduction changeIntroduction){
+    public BaseResponse changeIntroduction(@ModelAttribute @Valid ChangeIntroduction changeIntroduction){
         return userService.changeIntroduction(changeIntroduction);
     }
 
     @PostMapping("/changeUserInfo")
     @Operation(description = "修改个人信息")
-    public BaseResponse changeUserInfo(@RequestBody UserInfo changeUserInfo){
+    public BaseResponse changeUserInfo(@ModelAttribute UserInfo changeUserInfo){
         return userService.changeUserInfo(changeUserInfo);
+    }
+
+    @GetMapping("/getUserInfo/{name}")
+    @Operation(description = "获取用户信息")
+    public BaseResponse getUserInfo(@PathVariable String name){
+        return userService.getUserInfo(name);
     }
 
     @GetMapping("/test")

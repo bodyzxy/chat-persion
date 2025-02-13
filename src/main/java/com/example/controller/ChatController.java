@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -20,7 +20,7 @@ import reactor.core.publisher.Flux;
  */
 @CrossOrigin(origins = "*", maxAge = 3600)//跨域共享
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api/chat")
 @Slf4j
 @Tag(name = "ChatController",description = "对话接口")
 @ApiSupport(author = "bodyzxy")
@@ -34,6 +34,30 @@ public class ChatController {
     //TODO:参数传递需要加一个userid和databaseID
     public Flux<ChatResponse> stream(@RequestBody ChatRequest request) {
         return chatService.ragChat(request).flatMapSequential(Flux::just);
+    }
+
+    @Operation(summary = "common", description = "普通对话接口获取热门项目")
+    @PostMapping("/common")
+    public BaseResponse common(@RequestBody ChatRequest request) {
+        return chatService.common(request);
+    }
+
+    @Operation(summary = "hotBook",description = "普通获取热门书籍接口")
+    @PostMapping("/hotBook")
+    public BaseResponse hotBook(@RequestBody ChatRequest request) {
+        return chatService.hotBook(request);
+    }
+
+    @Operation(summary = "hotTitle", description = "热门博客地址")
+    @PostMapping("/hotTitle")
+    public BaseResponse hotTitle(@RequestBody ChatRequest request) {
+        return chatService.hotTitle(request);
+    }
+
+    @Operation(summary = "talk",description = "课程对话接口")
+    @PostMapping("/talk")
+    public BaseResponse talk(@RequestBody ChatRequest request) {
+        return chatService.talk(request);
     }
 
     @Operation(summary = "text", description = "测试接口")

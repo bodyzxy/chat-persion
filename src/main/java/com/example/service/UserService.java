@@ -22,4 +22,6 @@ public interface UserService {
     BaseResponse changeIntroduction(ChangeIntroduction changeIntroduction);
 
     BaseResponse changeUserInfo(UserInfo changeUserInfo);
+
+    BaseResponse getUserInfo(String name);
 }

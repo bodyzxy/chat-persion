@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)//跨域共享，maxAge是最大缓存时间
-@RequestMapping("/database")
+@RequestMapping("/api/database")
 @Tag(name = "DatabaseController",description = "数据库接口")
 @ApiSupport(author = "bodyzxy")
 public class DatabaseController {
@@ -34,8 +34,9 @@ public class DatabaseController {
      */
     @GetMapping("/create/{id}/{name}")
     @Operation(summary = "create",description = "创建数据库")
-    public Long createDatabase(@PathVariable Long id, @PathVariable String name){
-        return databaseService.createDatabase(id, name);
+    public Long createDatabase(@PathVariable String id, @PathVariable String name){
+        Long userId = Long.parseLong(id);
+        return databaseService.createDatabase(userId, name);
     }
 
     /**
@@ -66,10 +67,15 @@ public class DatabaseController {
      */
     @GetMapping("/getUserData/{userId}")
     @Operation(summary = "getUserDataBase", description = "获取某位用户的数据库")
-    public BaseResponse getUserDataBase(@PathVariable Long userId){
-        return databaseService.getUserDataBase(userId);
+    public BaseResponse getUserDataBase(@PathVariable String userId){
+        Long id  = Long.parseLong(userId);
+        return databaseService.getUserDataBase(id);
     }
 
+    /**
+     * 获取热门数据库
+     * @return
+     */
     @GetMapping("/getHotDatabase")
     @Operation(summary = "getHotDatabase", description = "获取热门数据库")
     public BaseResponse getHotDatabase(){
@@ -83,7 +89,8 @@ public class DatabaseController {
      */
     @GetMapping("/delete/{id}")
     @Operation(summary = "delete", description = "删除数据库")
-    public BaseResponse deleteDatabase(@PathVariable Long id){
-        return databaseService.delete(id);
+    public BaseResponse deleteDatabase(@PathVariable String id){
+        Long dataBaseId = Long.parseLong(id);
+        return databaseService.delete(dataBaseId);
     }
 }

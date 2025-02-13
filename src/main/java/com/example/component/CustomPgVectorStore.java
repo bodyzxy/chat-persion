@@ -1,8 +1,8 @@
 package com.example.component;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingClient;
-import org.springframework.ai.vectorstore.PgVectorStore;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
@@ -19,16 +19,26 @@ public class CustomPgVectorStore extends PgVectorStore {
     private Long id;
     private Long databaseId;
 
-
-    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient) {
-        super(jdbcTemplate, embeddingClient);
-    }
-
-    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient, Long id, Long databaseId) {
-        super(jdbcTemplate, embeddingClient);
+    public CustomPgVectorStore(PgVectorStoreBuilder builder, Long id, Long databaseId) {
+        super(builder);
         this.id = id;
         this.databaseId = databaseId;
     }
+
+    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, OpenAiEmbeddingModel embeddingModel) {
+        super(PgVectorStore.builder(jdbcTemplate,embeddingModel));
+    }
+
+
+//    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient) {
+//        super(jdbcTemplate, embeddingClient);
+//    }
+//
+//    public CustomPgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingClient embeddingClient, Long id, Long databaseId) {
+//        super(jdbcTemplate, embeddingClient);
+//        this.id = id;
+//        this.databaseId = databaseId;
+//    }
 
     @Override
     public void add(List<Document> documents){
@@ -47,7 +57,7 @@ public class CustomPgVectorStore extends PgVectorStore {
             metadata.put("databaseId",databaseId);
             Document processedDocument = new Document(
                     document.getId(),
-                    document.getContent(),
+                    document.getText(),
                     metadata
             );
             processedDocuments.add(processedDocument);

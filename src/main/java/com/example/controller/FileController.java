@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @CrossOrigin(origins = "*", maxAge = 3600)//跨域共享
 @RestController
-@RequestMapping("/file")
+@RequestMapping("/api/file")
 @Slf4j
 @Tag(name = "FileController",description = "文件操作接口")
 @ApiSupport(author = "bodyzxy")

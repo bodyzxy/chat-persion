@@ -1,7 +1,8 @@
 package com.example.service;
 
+import com.example.component.BaseResponse;
 import com.example.model.Request.ChatRequest;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.model.ChatResponse;
 import reactor.core.publisher.Flux;
 
 /**
@@ -11,4 +12,12 @@ import reactor.core.publisher.Flux;
  */
 public interface ChatService {
     Flux<ChatResponse> ragChat(ChatRequest request);
+
+    BaseResponse common(ChatRequest request);
+
+    BaseResponse hotBook(ChatRequest request);
+
+    BaseResponse hotTitle(ChatRequest request);
+
+    BaseResponse talk(ChatRequest request);
 }

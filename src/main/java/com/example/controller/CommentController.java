@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2024/12/2 21:14
  */
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("/api/comment")
 @Tag(name="CommentController", description = "评论接口")
 @Slf4j
 @RequiredArgsConstructor

@@ -23,6 +23,7 @@ public enum ErrorCode {
     USERNAME_IS_CREATE(400100,"用户名已存在"),
     EMAIL_IS_CREATE(400101,"邮箱已使用"),
     PASSWORD_ERROR(400102,"重复密码不一致"),
+    NOT_ERROR(400103,"错误"),
     NO_AUTH_ERROR(40101, "无权限");
 
     private final int code;

@@ -5,6 +5,7 @@ import com.example.component.ErrorCode;
 import com.example.model.Database;
 import com.example.model.Request.DatabasePageReq;
 import com.example.model.User;
+import com.example.model.response.DataBaseInfo;
 import com.example.repository.DatabaseRepository;
 import com.example.repository.UserRepository;
 import com.example.service.DatabaseService;
@@ -17,10 +18,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author bodyzxy
@@ -54,13 +55,15 @@ public class DatabaseServiceImpl implements DatabaseService {
             return ResultUtils.error(ErrorCode.DATABASE_ERROR);
         }
         database.setIsPublic(true);
+        databaseRepository.save(database);
         return ResultUtils.success("公开成功");
     }
 
     @Override
     public BaseResponse delete(Long id) {
         Database database = databaseRepository.findById(id).get();
-        database.setIsDeleted(false);
+        database.setIsDeleted(true);
+        databaseRepository.save(database);
         return ResultUtils.success("删除成功");
     }
 
@@ -72,20 +75,32 @@ public class DatabaseServiceImpl implements DatabaseService {
         if (databases.isEmpty()) {
             return ResultUtils.error(ErrorCode.DATABASE_NULL);
         }
-        return ResultUtils.success(databases);
+        // 使用 Stream API 将 Database 转换为 DataBaseInfo
+        Page<DataBaseInfo> databaseInfoPage = databases.map(database -> {
+            DataBaseInfo info = new DataBaseInfo();
+            info.setId(database.getId());
+            info.setName(database.getUser().getUsername());
+            info.setTitle(database.getName());
+            info.setTime(database.getDate()); // 假设 `Database` 有 `getCreateTime()`
+            return info;
+        });
+        return ResultUtils.success(databaseInfoPage);
     }
 
     @Override
     public BaseResponse getUserDataBase(Long userId) {
         User user = UserHolder.getUser();
-        if (Objects.equals(user.getId(), userId)){
-            List<Database> databases = databaseRepository.findAllByUserId(userId);
-            return ResultUtils.success(databases);
-        }
         List<Database> databases = databaseRepository.findAllByUserId(userId);
-        //条件移除
-        databases.removeIf(database -> !database.getIsPublic());
-        return ResultUtils.success(databases);
+        databases.removeIf(database -> database.getIsDeleted());
+        // 如果不是当前用户，移除非公开的数据库
+        if (!Objects.equals(user.getId(), userId)) {
+            databases.removeIf(database -> !database.getIsPublic());
+        }
+
+        // 转换数据库列表为 DataBaseInfo 列表
+        List<DataBaseInfo> dataBaseInfoList = convertToDataBaseInfoList(databases, userId);
+
+        return ResultUtils.success(dataBaseInfoList);
     }
 
     @Override
@@ -94,4 +109,17 @@ public class DatabaseServiceImpl implements DatabaseService {
         List<Database> databases = databaseRepository.findAll(pageable).getContent();
         return ResultUtils.success(databases);
     }
+
+    private List<DataBaseInfo> convertToDataBaseInfoList(List<Database> databases, Long userId) {
+        return databases.stream().map(db -> {
+            DataBaseInfo dataBaseInfo = new DataBaseInfo();
+            dataBaseInfo.setId(db.getId());
+            dataBaseInfo.setName(db.getUser().getUsername());
+            dataBaseInfo.setTitle(db.getName());
+            dataBaseInfo.setTime(db.getDate());
+            return dataBaseInfo;
+        }).collect(Collectors.toList());
+    }
 }
+
+

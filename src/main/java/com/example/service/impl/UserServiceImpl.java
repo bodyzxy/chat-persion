@@ -13,6 +13,7 @@ import com.example.model.Request.UserInfo;
 import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.response.JwtResponse;
+import com.example.model.response.UserInfoResponse;
 import com.example.model.response.UserResponse;
 import com.example.repository.RoleRepository;
 import com.example.repository.UserRepository;
@@ -104,6 +105,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public BaseResponse login(SignInRequest signInRequest) {
         User user = userRepository.findByUsername(signInRequest.getUsername());
+
+        // 2. 校验密码
+        if (!passwordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
+            return ResultUtils.error(ErrorCode.PASSWORD_ERROR);
+        }
         UserResponse userResponse = BeanUtil.copyProperties(user,UserResponse.class);
         Map<String,Object> userMap = BeanUtil.beanToMap(userResponse,new HashMap<>(),
                 CopyOptions.create().setIgnoreNullValue(true)
@@ -162,6 +168,7 @@ public class UserServiceImpl implements UserService {
         }else {
             User user1 = user.get();
             user1.setIntroduction(changeIntroduction.introduction());
+            userRepository.save(user1);
         }
         return ResultUtils.success("修改成功");
     }
@@ -195,5 +202,20 @@ public class UserServiceImpl implements UserService {
         user.setPhone(changeUserInfo.phone());
         userRepository.save(user);
         return ResultUtils.success("修改成功");
+    }
+
+    @Override
+    public BaseResponse getUserInfo(String name) {
+        User user = userRepository.findByUsername(name);
+        if (user == null){
+            return ResultUtils.error(ErrorCode.USER_IS_NOT);
+        }
+        User user2 = UserHolder.getUser();
+        if (!Objects.equals(user.getId(), user2.getId())){
+            user.setPassword(null);
+        }
+        UserInfoResponse userInfoResponse = new UserInfoResponse();
+        BeanUtil.copyProperties(user,userInfoResponse);
+        return ResultUtils.success(userInfoResponse);
     }
 }

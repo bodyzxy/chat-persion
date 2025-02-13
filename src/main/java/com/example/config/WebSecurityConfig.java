@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -53,9 +54,9 @@ public class WebSecurityConfig {
 
 
     private static final String[] WHITE_LIST_URL = {
-            "/user/login",
-            "/user/register",
-            "/chat/**",
+            "/api/user/login",
+            "/api/user/register",
+            "/api/chat/**",
             "/doc.html",
             "/webjars/**",
             "/v3/**",

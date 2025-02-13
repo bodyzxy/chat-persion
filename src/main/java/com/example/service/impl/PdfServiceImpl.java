@@ -17,13 +17,13 @@ import com.example.utils.MinioUtil;
 import com.example.utils.ResultUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.EmbeddingClient;
-import org.springframework.ai.openai.OpenAiEmbeddingClient;
+import org.springframework.ai.model.ApiKey;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
-import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
@@ -124,18 +124,34 @@ public class PdfServiceImpl implements PdfService {
      * @return
      */
     private VectorStore randomVectorStore(Long id,Long databaseId){
-        OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
-        EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
+        OpenAiApi openAiApi = OpenAiApi.builder()
+                .baseUrl(defaultBaseUrl)
+                .apiKey(customApiKey)
+                .build();;
+        OpenAiEmbeddingModel embeddingModel = new OpenAiEmbeddingModel(openAiApi);
+        // 假设 SpringAI 提供了一个工厂方法来创建 PgVectorStoreBuilder
+        PgVectorStore.PgVectorStoreBuilder builder = PgVectorStore.builder(jdbcTemplate, embeddingModel);
 //        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
-        return new CustomPgVectorStore(jdbcTemplate,embeddingClient,id,databaseId);
+        return new CustomPgVectorStore(builder,id,databaseId);
     }
+
+    ApiKey customApiKey = new ApiKey() {
+        @Override
+        public String getValue() {
+            // Custom logic to retrieve API key
+            return defaultApiKey;
+        }
+    };
 
     @Override
     public VectorStore randomVectorStore(){
-        OpenAiApi openAiApi = new OpenAiApi(defaultBaseUrl, defaultApiKey);
-        EmbeddingClient embeddingClient = new OpenAiEmbeddingClient(openAiApi);
+        OpenAiApi openAiApi = OpenAiApi.builder()
+                .baseUrl(defaultBaseUrl)
+                .apiKey(customApiKey)
+                .build();;
+        OpenAiEmbeddingModel embeddingModel = new OpenAiEmbeddingModel(openAiApi);
 //        OpenAiEmbeddingModel openAiEmbeddingModel = new OpenAiEmbeddingModel(openAiApi);
-        return new PgVectorStore(jdbcTemplate,embeddingClient);
+        return new CustomPgVectorStore(jdbcTemplate, embeddingModel);
     }
 
     /**

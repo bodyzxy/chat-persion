@@ -1,6 +1,5 @@
 package com.example.model.Request;
 
-import com.google.protobuf.Message;
 
 import java.util.List;
 
