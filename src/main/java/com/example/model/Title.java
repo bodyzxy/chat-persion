@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Tatile {
+public class Title {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,7 +24,7 @@ public class Tatile {
     @Size(max = 120)
     private String name;
 
-    //1表示一级题目，2表示二级题目
+    //优先级
     private Integer grade;
 
     @Size(max = 120)
@@ -33,4 +33,7 @@ public class Tatile {
     //minio视屏链接
     @Column(columnDefinition = "TEXT")
     private String url;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
 }

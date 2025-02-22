@@ -9,20 +9,17 @@ import lombok.Data;
  */
 @Data
 public class HotTitle {
-    public String prompt = "给我找30条关于学习自然语言处理的博客并以下面的json格式返回,我要求你返回时的text的json字段像下面这个格式一样，前后没有任何多余字段"+
-            "[" +
-            "{\n" +
-            "\"id\": ,\n" +
-            "\"title\": \"\",\n" +
-            "\"description\": \"\",\n" +
-            "\"url\":\"\"\n" +
-            "}," +
-            "{\n" +
-            "\"id\": ,\n" +
-            "\"title\": \"\",\n" +
-            "\"description\": \"\",\n" +
-            "\"url\":\"\"\n" +
-            "}"+
-            "]"+
-            "将地址写到url这里,同时你必须使用中文进行回答，若项目为其他语言将其翻译后写入json中";
+    public String prompt = "自然语言处理 热门博客 20条";
+
+    public String hint = "请严格按照以下 JSON 格式整理搜索结果，并只返回 JSON，不要添加额外的文字：\n" +
+            "[\n" +
+            "{ \"id\": 1, \"title\": \"\", \"description\": \"\", \"url\": \"\" },\n" +
+            "{ \"id\": 2, \"title\": \"\", \"description\": \"\", \"url\": \"\" }\n" +
+            "]\n" +
+            "请确保：\n" +
+            "1. **id 递增**，从 1 开始。\n" +
+            "2. **title** 使用文章标题，**description** 提取文章内容摘要200字以内。\n" +
+            "3. **url** 必须是可访问的博客链接。\n" +
+            "4. 只返回 JSON，不要添加任何多余的解释。\n" +
+            "以下是搜索结果，请按照 JSON 格式整理：\n";
 }

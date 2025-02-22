@@ -44,11 +44,11 @@ public class FileController {
         return pdfService.contents(request);
     }
 
-//    @GetMapping("/contents/{id}")
-//    @Operation(description = "文件查询-不分页")
-//    public BaseResponse contentsAll(@PathVariable("id") Long id){
-//        return pdfService.contentsAll(id);
-//    }
+    @GetMapping("/contents/{databaseId}")
+    @Operation(summary = "contentsAllById", description = "文件查询-不分页")
+    public BaseResponse contentsAllById(@PathVariable("databaseId") Long databaseId){
+        return pdfService.contentsAllById(databaseId);
+    }
 
     @DeleteMapping("/deleteFile")
     @Operation(description = "删除文件")

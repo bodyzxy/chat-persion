@@ -2,12 +2,15 @@ package com.example.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.example.common.ApplicationConstant;
+import com.example.common.GoogleComment;
 import com.example.component.BaseResponse;
 import com.example.component.ErrorCode;
 import com.example.constant.HotBook;
 import com.example.constant.HotGithub;
 import com.example.constant.HotTitle;
+import com.example.constant.TalkConstant;
 import com.example.exception.BusinessException;
+import com.example.model.Request.ChatDataBaseRequest;
 import com.example.model.Request.ChatMessage;
 import com.example.model.Request.ChatOptions;
 import com.example.model.Request.ChatRequest;
@@ -15,6 +18,7 @@ import com.example.service.ChatService;
 import com.example.service.PdfService;
 import com.example.utils.ResultUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ import org.springframework.ai.model.ApiKey;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,9 +67,12 @@ public class ChatServiceImpl implements ChatService {
     private String defaultBaseUrl;
     private PdfService pdfService;
 
+    private final GoogleComment googleComment;
+
     @Autowired
-    public ChatServiceImpl(PdfService pdfService) {
+    public ChatServiceImpl(PdfService pdfService, GoogleComment googleComment) {
         this.pdfService = pdfService;
+        this.googleComment = googleComment;
     }
 
     ApiKey customApiKey = new ApiKey() {
@@ -83,10 +91,14 @@ public class ChatServiceImpl implements ChatService {
                 .baseUrl(defaultBaseUrl)
                 .apiKey(customApiKey)
                 .build();
-        return new OpenAiChatModel(openAiApi, OpenAiChatOptions.builder()
-                .temperature(Double.valueOf(chatOptions.temperature()))
-                .model(chatOptions.model())
-                .build());
+        return OpenAiChatModel.builder()
+                .openAiApi(openAiApi)  // 传入 OpenAiApi
+                .defaultOptions(OpenAiChatOptions.builder()
+                        .temperature(Double.valueOf(chatOptions.temperature()))
+                        .model(chatOptions.model())
+                        .build())
+                .build();
+
     }
 
     //message转换
@@ -121,16 +133,53 @@ public class ChatServiceImpl implements ChatService {
         }
         return messages;
     }
+
+    //保证消息长度在配置长度范围内
+    private List<Message> ragCheckMessageLength(List<Message> messages, ChatDataBaseRequest chatRequest){
+        if (!messages.isEmpty()&&messages.get(0).getMessageType() == MessageType.SYSTEM){
+            messages.remove(0);
+        }
+        Integer maxMessageLength = chatRequest.chatOptions().maxHistoryLength();
+        int currentMessageLength = messages.size();
+        if (currentMessageLength > maxMessageLength){
+            messages = messages.subList(currentMessageLength-maxMessageLength, currentMessageLength);
+        }
+        return messages;
+    }
+
     // 向量数据库检索 返回系统提示信息（该信息包含了查询到的一组文档）
-    private Message similaritySearc(String prompt){
+    private Message similaritySearc(String prompt, Long databaseId){
         VectorStore vectorStore = pdfService.randomVectorStore();
-        //TODO: 此处修改为自己的similaritySearch进行检索
+
         List<Document> listOfSimilarDocuments = vectorStore.similaritySearch(prompt);
+        //分类出哪个数据库的
+//        assert listOfSimilarDocuments != null;
+        List<Document> filteredDocuments = listOfSimilarDocuments.stream()
+                .filter(doc -> {
+                    Map<String, Object> metadata = doc.getMetadata();
+                    if (metadata == null || !metadata.containsKey("databaseId")) {
+                        return false;
+                    }
+                    try{
+                        int docDatabaseId = Integer.parseInt(metadata.get("databaseId").toString());
+                        return docDatabaseId == databaseId;
+                    } catch (Exception e){
+                        return false;
+                    }
+                })
+                .toList();
+
+        // 如果没找到匹配的 databaseId，尝试扩大搜索或返回空信息
+        if (filteredDocuments.isEmpty()) {
+            return new SystemPromptTemplate(ApplicationConstant.SYSTEM_PROMPT)
+                    .createMessage(Map.of("documents", "未找到符合的 databaseId 数据"));
+        }
+
         //将Document列表中的每个元素的content内容进行拼接获得documents
-        String documents = listOfSimilarDocuments.stream().map(Document::getText).collect(Collectors.joining());
+        String documents = filteredDocuments.stream().map(Document::getText).collect(Collectors.joining());
         //使用Spring AI提供的模版凡事构建SystemMessage对象
-        Message systemMessage = new SystemPromptTemplate(ApplicationConstant.SYSTEM_PROMPT).createMessage(Map.of("documents", documents));
-        return systemMessage;
+        Message message = new SystemPromptTemplate(ApplicationConstant.SYSTEM_PROMPT).createMessage(Map.of("documents", documents));
+        return message;
     }
 
     /**
@@ -139,44 +188,39 @@ public class ChatServiceImpl implements ChatService {
      * @return
      */
     @Override
-    public Flux<ChatResponse> ragChat(ChatRequest request) {
+    public BaseResponse ragChat(ChatDataBaseRequest request) {
         if (StrUtil.isBlank(request.prompt())) {
-            return Flux.error(new RuntimeException(String.valueOf(ErrorCode.PROMPT_ERROR)));
+            return ResultUtils.error(ErrorCode.NOT_ERROR);
         }
-
-        SecurityContext context = SecurityContextHolder.getContext(); // 1️⃣ 先获取 SecurityContext
 
         OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
         String prompt = request.prompt();
         List<Message> messages = transformAiMessage(request.messages());
-        messages = checkMessageLength(messages, request);
-        Message systemMessage = similaritySearc(prompt);
+        messages = ragCheckMessageLength(messages, request);
+        Message systemMessage = similaritySearc(prompt, request.databaseId());
         log.info("-----------------------------" + systemMessage + "============================");
         messages.add(0, systemMessage);
+        ChatResponse chatResponse = streamingChatClient.call(new Prompt(messages));
 
-        List<Message> finalMessages = messages;
-        return Flux.deferContextual(ctx -> {
-            SecurityContextHolder.setContext(context); // 2️⃣ 在 Reactor 上下文中恢复 SecurityContext
-            return streamingChatClient.stream(new Prompt(finalMessages));
-        }).contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context))); // 3️⃣ 绑定 SecurityContext 到 Reactor
+        return ResultUtils.success(chatResponse.getResult().getOutput().getText());
     }
 
     @Override
     public BaseResponse common(ChatRequest request) {
         try {
-            // 使用流式对话客户端，初始化时使用的是传入的 ChatRequest 中的配置
-            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
+
+            HotGithub prompt = new HotGithub();
+            //使用Google搜索
+            String searchResultsJson = googleComment.search(prompt.getPrompt());
 
             // 准备消息
             List<Message> messages = transformAiMessage(request.messages());
             messages = checkMessageLength(messages, request);
-            HotGithub prompt = new HotGithub();
-
             // 直接将用户的提示作为系统消息，不需要向量检索
-            Message systemMessage = new SystemMessage(prompt.getPrompt()); // 使用用户的提示作为系统消息
+            Message systemMessage = new SystemMessage(prompt.getHint() + searchResultsJson); // 使用用户的提示作为系统消息
             messages.add(0, systemMessage); // 将系统消息添加到消息列表的开头
 
-            // 使用生成的消息进行请求
+            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
             ChatResponse chatResponse = streamingChatClient.call(new Prompt(messages)); // 这是同步请求
 
             // Process or return the resources as needed
@@ -191,14 +235,19 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public BaseResponse hotBook(ChatRequest request) {
         try{
-            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
+
+            HotBook prompt = new HotBook();
+
+            //使用Google搜索
+            String searchResultsJson = googleComment.search(prompt.getPrompt());
             List<Message> messages = transformAiMessage(request.messages());
             messages = checkMessageLength(messages, request);
 
-            HotBook prompt = new HotBook();
-            Message systemMessage = new SystemMessage(prompt.getPrompt());
+
+            Message systemMessage = new SystemMessage(prompt.getHint()+searchResultsJson);
             messages.add(0, systemMessage);
 
+            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
             ChatResponse chatResponse = streamingChatClient.call(new Prompt(messages));
 
             return ResultUtils.success(chatResponse.getResult().getOutput().getText());
@@ -212,12 +261,19 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public BaseResponse hotTitle(ChatRequest request) {
         try{
-            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
+            //获取用户输入的内容
+            HotTitle prompt = new HotTitle();
+
+            //使用Google搜索
+            String searchResultsJson = googleComment.search(prompt.getPrompt());
             List<Message> messages = transformAiMessage(request.messages());
             messages = checkMessageLength(messages, request);
-            HotTitle prompt = new HotTitle();
-            Message systemMessage = new SystemMessage(prompt.getPrompt());
+
+            Message systemMessage = new SystemMessage(prompt.getHint()+searchResultsJson);
             messages.add(0, systemMessage);
+
+
+            OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
             ChatResponse chatResponse = streamingChatClient.call(new Prompt(messages));
             return ResultUtils.success(chatResponse.getResult().getOutput().getText());
         }catch (Exception e){
@@ -230,10 +286,11 @@ public class ChatServiceImpl implements ChatService {
     public BaseResponse talk(ChatRequest request) {
 
         try{
+            TalkConstant talkConstant = new TalkConstant();
             OpenAiChatModel streamingChatClient = randomGetStreamingChatClient(request.chatOptions());
             List<Message> messages = transformAiMessage(request.messages());
             messages = checkMessageLength(messages, request);
-            Message systemMessage = new SystemMessage("你必须使用中文回答,"+request.prompt());
+            Message systemMessage = new SystemMessage(talkConstant.getHint()+request.prompt());
             messages.add(0, systemMessage);
             ChatResponse chatResponse = streamingChatClient.call(new Prompt(messages));
             return ResultUtils.success(chatResponse.getResult().getOutput().getText());

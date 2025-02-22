@@ -19,7 +19,7 @@ public interface PdfService {
 
     BaseResponse deleteFile(Long id);
 
-//    BaseResponse contentsAll(Long id);
+    BaseResponse contentsAllById(Long databaseId);
 // 初始化向量数据库操作接口
     VectorStore randomVectorStore();
 }

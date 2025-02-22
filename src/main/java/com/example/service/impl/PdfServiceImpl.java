@@ -98,6 +98,8 @@ public class PdfServiceImpl implements PdfService {
                             .fileName(fileName)
                             .vectorId(applyList.stream().map(Document::getId).collect(Collectors.toList()))
                             .url(url)
+                            .isDeleted(false)
+                            .databaseId(fileUpdate.databaseId())
 //                            .userId(user)
                             .createTime(new Date(time))
                             .updateTime(new Date(time))
@@ -196,9 +198,9 @@ public class PdfServiceImpl implements PdfService {
     }
 
 
-//    @Override
-//    public BaseResponse contentsAll(Long id) {
-//        Page<MinioFile> allContens = minioFileRepository.find
-//        return null;
-//    }
+    @Override
+    public BaseResponse contentsAllById(Long databaseId) {
+        List<String> nameList = minioFileRepository.findNamesByDatabaseId(databaseId);
+        return ResultUtils.success(nameList);
+    }
 }

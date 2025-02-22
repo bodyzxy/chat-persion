@@ -71,7 +71,7 @@ public class DatabaseServiceImpl implements DatabaseService {
     public BaseResponse getShareDatabase(DatabasePageReq databasePageReq) {
         Pageable pageable = PageRequest.of(databasePageReq.page(), databasePageReq.pageSize());
 
-        Page<Database> databases = databaseRepository.findByIsPublicTrue(pageable);
+        Page<Database> databases = databaseRepository.findByIsPublicTrueAndIsDeletedFalse(pageable);
         if (databases.isEmpty()) {
             return ResultUtils.error(ErrorCode.DATABASE_NULL);
         }

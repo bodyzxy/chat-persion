@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.component.BaseResponse;
+import com.example.model.Request.ChatDataBaseRequest;
 import com.example.model.Request.ChatRequest;
 import com.example.service.ChatService;
 import com.example.utils.ResultUtils;
@@ -32,8 +33,8 @@ public class ChatController {
     @Operation(summary = "stream",description = "流式对话接口")
     @PostMapping("/stream")
     //TODO:参数传递需要加一个userid和databaseID
-    public Flux<ChatResponse> stream(@RequestBody ChatRequest request) {
-        return chatService.ragChat(request).flatMapSequential(Flux::just);
+    public BaseResponse stream(@RequestBody ChatDataBaseRequest request) {
+        return chatService.ragChat(request);
     }
 
     @Operation(summary = "common", description = "普通对话接口获取热门项目")

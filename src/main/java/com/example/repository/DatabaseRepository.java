@@ -14,7 +14,7 @@ import org.springframework.data.domain.Page;
  * @date 2024/10/17 21:07
  */
 public interface DatabaseRepository extends JpaRepository<Database, Long> {
-    Page<Database> findByIsPublicTrue(Pageable pageable);
+    Page<Database> findByIsPublicTrueAndIsDeletedFalse(Pageable pageable);
 
     List<Database> findAllByUserId(Long userId);
 }

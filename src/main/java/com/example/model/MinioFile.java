@@ -52,6 +52,9 @@ public class MinioFile {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "database_id")
+    private Long databaseId;
+
     // 用户ID字段
 //    @ManyToOne
 //    @JoinColumn(name = "user_id", referencedColumnName = "id")
